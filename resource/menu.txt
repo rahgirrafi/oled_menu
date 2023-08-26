@@ -1,0 +1,64 @@
+MODEL{
+
+level1-elem1 :         
+    level2-elem1: 
+        level3-elem1
+        lelvel3-elem2
+        lelevl3-elem3
+    elem2:
+        elem1
+        elem2
+        elem3
+    elem3:
+        elem1
+        elem2
+        elem3
+}
+
+Implementation:
+
+{
+    main menu:
+        SENSOR VALUE:
+            RAW VALUE
+            BIN VALUE
+            POSITION
+            THRESHOLD:
+                CHANGE
+
+        PID:
+            Kp:
+                CHANGE
+            Ki:
+                CHANGE
+            Kd:
+                CHANGE
+        MEMORY:
+            HISTORY
+            
+
+        CASE:
+
+        MOTOR SPEED:
+            CHANGE
+
+        RUN
+
+}
+
+
+
+int current_level = 0;
+int selected = 0;
+if Enter is pressed, then level will change and new level will be dispalyed. 
+
+++current_level;
+
+
+void display_level(){
+    //display the current level
+    //
+};
+
+
+

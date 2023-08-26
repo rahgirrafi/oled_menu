@@ -19,8 +19,9 @@ const int backButton = 4;
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
+const int numberOfLevels= 3;
+int previousSelected[numberOfLevels] = {0,0,0};
 int selectedItem = 0 ;
-int numberOfLevels= 3;
 int currentLevel = 0;
 
 
@@ -41,7 +42,6 @@ const char* lvl1_sensorReadingOptions[] = {
   "BIN_value",
   "Raw_value",
   "Position",
-  "Back"
 };
 
 int sensorReadingSize = sizeof(lvl1_sensorReadingOptions) / sizeof(lvl1_sensorReadingOptions[0]);
@@ -51,10 +51,32 @@ const char* lvl1_pidMenuOptions[] = {
   "Ki",
   "Kd",
   "Save",
+};
+ int pidMenuSize = sizeof(lvl1_pidMenuOptions) / sizeof(lvl1_pidMenuOptions[0]);
+
+const char* lvl1_memoryMenuOptions[] = {
+  "History",
+  "Save",
+  "Load",
+};
+
+int memoryMenuSize = sizeof(lvl1_memoryMenuOptions) / sizeof(lvl1_memoryMenuOptions[0]);
+
+
+/*
+case menu will be added later
+*/
+
+const char* lvl1_motorSpeedMenuOptions[] = {
+  //the motor speede will be shown in this menu. Will be added later.
+  "Increase",
+  "Decrease",
   "Back"
 };
 
-int pidMenuSize = sizeof(lvl1_pidMenuOptions) / sizeof(lvl1_pidMenuOptions[0]);
+int motorSpeedMenuSize = sizeof(lvl1_motorSpeedMenuOptions) / sizeof(lvl1_motorSpeedMenuOptions[0]);
+
+
 
 void setup() {
   Serial.begin(9600);
@@ -108,32 +130,65 @@ void getMenu(int level, int selected){
     else if(selected == 1){
       displayMenu(lvl1_pidMenuOptions, pidMenuSize);
     }
-}
-}
+    else if(selected == 2){
+      displayMenu(lvl1_memoryMenuOptions, memoryMenuSize);
+    }
+    else if(selected == 3){
+      displayMenu(lvl1_motorSpeedMenuOptions, motorSpeedMenuSize);
+    }
 
+}
+}
+//this function moves the cursor up and down according to menu size. 
+//It is later used in navigateMenu function to reduce the code size.
+void cursor_move(int menuSize)
+{
+  if(upPressed == HIGH){
+    selectedItem = (selectedItem + 1) % menuSize;
+    delay(200);
+  }
+  else if(downPressed == HIGH){
+    selectedItem = (selectedItem - 1) % menuSize;
+    delay(200);
+  }
+}
+//this function navigates the menu. It is called in loop function.
 void navigateMenu(){
   upPressed = digitalRead(upButton);
   downPressed = digitalRead(downButton);
   enterPressed = digitalRead(enterButton);
   backPressed = digitalRead(backButton);
-
+//this part moves the cursor up and down
   if(currentLevel==0)
-{
-if(upPressed == HIGH){
-    selectedItem = (selectedItem + 1) % mainMenuSize;
-    delay(200);
+  {
+    cursor_move(mainMenuSize);
   }
-  else if(downPressed == HIGH){
-    selectedItem = (selectedItem - 1) % mainMenuSize;
-    delay(200);
+  if (currentLevel==1 && previousSelected[currentLevel-1]==0)
+  {
+    cursor_move(sensorReadingSize);
   }
-}
+  else if (currentLevel==1 && previousSelected[currentLevel-1]==1)
+  {
+    cursor_move(pidMenuSize);
+  }
+  else if (currentLevel==1 && previousSelected[currentLevel-1]==2)
+  {
+    cursor_move(memoryMenuSize);
+  }
+  else if (currentLevel==1 && previousSelected[currentLevel-1]==3)
+  {
+    cursor_move(motorSpeedMenuSize);
+  }
 
+//this part changes the level of menu
   if(enterPressed == HIGH){
+    previousSelected[currentLevel] = selectedItem;
+    selectedItem = 0;
     currentLevel = (currentLevel + 1) % numberOfLevels;
     delay(200);
   }
   else if(backPressed == HIGH){
+    
     currentLevel = (currentLevel - 1) % numberOfLevels;
     delay(200);
   }
@@ -144,11 +199,20 @@ if(upPressed == HIGH){
 
 
 void loop() {
-  Serial.print(selectedItem);
+  Serial.print(currentLevel);
   Serial.print('\t');
-  Serial.println(currentLevel);
+  Serial.print(previousSelected[currentLevel-1]);
+  Serial.print('\t');
+  Serial.println(selectedItem);
 
-  getMenu(currentLevel, selectedItem);
+
+  if(currentLevel==0)
+  {
+    getMenu(currentLevel, selectedItem);
+  }
+  else
+    getMenu(currentLevel, previousSelected[currentLevel-1]);
+
   navigateMenu();
 
 }
